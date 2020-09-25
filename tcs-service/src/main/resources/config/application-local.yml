@@ -30,13 +30,13 @@ azure:
 aws.s3.bucket: tisdevstor
 
 kc:
-  realm: ${KC_REALM:lin}
+  realm: ${KC_REALM}
   client:
-    id: ${KC_CLIENT_ID:api-tokens}
+    id: ${KC_CLIENT_ID}
   server:
-    url: ${KC_SERVER_URL:https://dev-apps.tis.nhs.uk/auth/}
-  username: ${KC_USERNAME:tcs_trust_admin}
-  password: ${KC_PASSWORD:tcs_trust_admin}
-  timeout: ${KC_TIMEOUT:10000}
+    url: ${KC_SERVER_URL}
+  username: ${KC_USERNAME}
+  password: ${KC_PASSWORD}
+  timeout: ${KC_TIMEOUT}
 
 enable.es.search: true
