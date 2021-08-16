@@ -129,12 +129,12 @@ jobs:
         with:
           java-version: 11
 
-      - name: Build, tag and push image to Amazon ECR
+      - name: package java
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: tcs
         run: |
-          mvn package -pl tcs-service -DskipTests
+          mvn install -DskipTests
           sh "cp ./tcs-service/target/tcs-service-*.war ./tcs-service/target/app.jar
 
       - name: Configure AWS credentials
