@@ -151,7 +151,8 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: tcs
         run: |
-          mvn install -DskipTests spring-boot:build-image -Dspring-boot.build-image.imageName=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          mvn install -DskipTests
+          mvn -pl tcs-service spring-boot:build-image -Dspring-boot.build-image.imageName=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} -DskipTests
           cp ./tcs-service/target/tcs-service-*.war ./tcs-service/target/app.jar
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} -f ./tcs-service/Dockerfile ./tcs-service
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
