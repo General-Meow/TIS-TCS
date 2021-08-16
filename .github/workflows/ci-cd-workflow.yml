@@ -134,6 +134,7 @@ jobs:
         run: |
           mvn install -DskipTests
           cp ./tcs-service/target/tcs-service-*.war ./tcs-service/target/app.jar
+          mvn -pl tcs-service spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
