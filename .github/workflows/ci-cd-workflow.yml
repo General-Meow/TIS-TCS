@@ -5,97 +5,96 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build, Test and Analyse
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up maven cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Set up JDK
-        uses: actions/setup-java@v2.1.0
-        with:
-          distribution: adopt
-          java-version: 11
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_MAVEN_USERNAME }}
-          aws-secret-access-key: ${{ secrets.AWS_MAVEN_PASSWORD }}
-          aws-region: eu-west-1
-
-      - name: Add CodeArtifact env var
-        run: echo "CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)" >> $GITHUB_ENV
-
-      - name: maven-settings-xml-action
-        uses: whelk-io/maven-settings-xml-action@v17
-        with:
-          servers: '[{ "id": "hee--Health-Education-England", "username": "aws", "password": "${env.CODEARTIFACT_AUTH_TOKEN}" }]'
-          repositories: '[{ "id": "hee--Health-Education-England", "url": "https://hee-430723991443.d.codeartifact.eu-west-1.amazonaws.com/maven/Health-Education-England/" }]'
-
-      - name: Build
-        run: mvn install -DskipTests
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: app-jar
-          path: tcs-*/target/*.jar
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-2
-
-      - name: Run tests
-        run: mvn test
-
-      - name: Run quality analysis
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-
-  backup-artifacts:
-    name: Backup build artifacts
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: build-artifacts
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-2
-
-      - name: Backup build artifacts
-        run: |
-          workflow=$(echo ${{ github.workflow }} | sed -e 's/\W/-/g' -e 's/\(.*\)/\L\1/')
-          aws s3 sync build-artifacts s3://tis-build-artifacts/${{ github.event.repository.name }}/$workflow/${{ github.run_number }}
+#  build:
+#    name: Build, Test and Analyse
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#
+#      - name: Set up maven cache
+#        uses: actions/cache@v2
+#        with:
+#          path: ~/.m2/repository
+#          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-maven-
+#
+#      - name: Set up JDK
+#        uses: actions/setup-java@v2.1.0
+#        with:
+#          distribution: adopt
+#          java-version: 11
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_MAVEN_USERNAME }}
+#          aws-secret-access-key: ${{ secrets.AWS_MAVEN_PASSWORD }}
+#          aws-region: eu-west-1
+#
+#      - name: Add CodeArtifact env var
+#        run: echo "CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)" >> $GITHUB_ENV
+#
+#      - name: maven-settings-xml-action
+#        uses: whelk-io/maven-settings-xml-action@v17
+#        with:
+#          servers: '[{ "id": "hee--Health-Education-England", "username": "aws", "password": "${env.CODEARTIFACT_AUTH_TOKEN}" }]'
+#          repositories: '[{ "id": "hee--Health-Education-England", "url": "https://hee-430723991443.d.codeartifact.eu-west-1.amazonaws.com/maven/Health-Education-England/" }]'
+#
+#      - name: Build
+#        run: mvn install -DskipTests
+#
+#      - name: Upload build artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: app-jar
+#          path: tcs-*/target/*.jar
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: eu-west-2
+#
+#      - name: Run tests
+#        run: mvn test
+#
+#      - name: Run quality analysis
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#        run: mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+#
+#  backup-artifacts:
+#    name: Backup build artifacts
+#    needs: build
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Download build artifacts
+#        uses: actions/download-artifact@v2
+#        with:
+#          path: build-artifacts
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: eu-west-2
+#
+#      - name: Backup build artifacts
+#        run: |
+#          workflow=$(echo ${{ github.workflow }} | sed -e 's/\W/-/g' -e 's/\(.*\)/\L\1/')
+#          aws s3 sync build-artifacts s3://tis-build-artifacts/${{ github.event.repository.name }}/$workflow/${{ github.run_number }}
 
   dockerize:
     name: Dockerize
-    needs: build
+#    needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout
@@ -146,8 +145,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: tcs
         run: |
-          cd tcs-service
-          mvn spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          mvn package -pl tcs-service -DskipTests
+          sh "cp ./tcs-service/target/tcs-service-*.war ./tcs-service/target/app.jar
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} -f ./tcs-service/Dockerfile ./tcs-service
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
 
@@ -155,6 +155,7 @@ jobs:
     name: Deploy pre-production definition
     needs: dockerize
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout
